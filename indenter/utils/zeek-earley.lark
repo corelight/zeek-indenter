@@ -1,0 +1,671 @@
+// Zeek grammar
+
+zeek: decl_list stmt_list
+    | TOK_ATDEBUG expr
+    // | zeek_comments
+
+zeek_comments: COMMENT+
+
+// decl_comments: COMMENT+
+// decl_last_comment: COMMENT+
+decl_with_comments: [zeek_comments] decl
+decl_list: (decl_with_comments)* [zeek_comments]
+// decl_list: (decl)*
+
+expr_: LPAREN expr RPAREN 
+expr_copy: TOK_COPY expr_ 
+expr_incr.14: TOK_INCR expr 
+expr_decr.14: TOK_DECR expr 
+expr_not.15: TOK_NOT expr 
+expr_tilde.15: TOK_TILDE expr 
+expr_minus.15: TOK_MINUS expr  
+expr_plus.15: TOK_PLUS expr
+expr_add.12: expr TOK_PLUS expr 
+expr_add_to.2: expr TOK_ADD_TO expr
+expr_sub.12: expr TOK_MINUS expr 
+expr_remove_from.2: expr TOK_REMOVE_FROM expr 
+expr_multiply.13: expr TOK_MULTIPLY expr
+expr_divide.13: expr TOK_DIVIDE expr 
+expr_modulo.13: expr TOK_MODULO expr
+expr_and: expr TOK_AMPERSAND expr 
+expr_or: expr TOK_OR expr 
+expr_caret.10: expr TOK_CARET expr
+expr_and_and.5: expr TOK_AND_AND expr
+expr_or_or.4:expr TOK_OR_OR expr
+expr_eq.7: expr TOK_EQ expr
+expr_ne.7: expr TOK_NE expr
+expr_lt.7: expr TOK_LT expr
+expr_le.7: expr TOK_LE expr
+expr_gt.7: expr TOK_GT expr
+expr_ge.7: expr TOK_GE expr
+expr_ternary.3: expr TOK_QUESTION expr COLON expr
+expr_equals.2: expr EQUALS expr
+expr_local_assign.2: TOK_LOCAL local_id EQUALS expr
+expr_expr_list: expr expr_expr_list_
+expr_dollar.16: expr TOK_DOLLAR id
+expr_dollar_id: TOK_DOLLAR id EQUALS expr
+expr_dollar_func: TOK_DOLLAR id func_params EQUALS func_body
+expr_in.8: expr TOK_IN expr
+expr_not_in.8: expr TOK_NOT_IN expr
+expr_expr_list_: LBRACKET expr_list RBRACKET
+expr_empty: LBRACKET RBRACKET
+expr_record: TOK_RECORD LPAREN expr_list RPAREN
+expr_opt_list_: LPAREN [expr_list] RPAREN
+expr_opt_list_opt_attr: expr_opt_list_ [opt_attr]
+expr_table: TOK_TABLE expr_opt_list_opt_attr
+expr_set: TOK_SET expr_opt_list_opt_attr
+expr_vector: TOK_VECTOR expr_opt_list_
+expr_opt_list: expr expr_opt_list_
+expr_hook.6: TOK_HOOK expr
+expr_has_field.16: expr TOK_HAS_FIELD id
+expr_schedule: TOK_SCHEDULE expr LBRACE event RBRACE
+expr_regex: TOK_DIVIDE TOK_PATTERN_TEXT TOK_PATTERN_END
+expr_size: TOK_OR expr TOK_OR
+expr_as.17: expr TOK_AS type
+expr_is.17: expr TOK_IS type
+
+expr: expr_ 
+    | expr_copy
+    | expr_incr
+    | expr_decr
+    | expr_not
+    | expr_tilde
+    | expr_minus
+    | expr_plus     
+    | expr_add
+    | expr_add_to 
+    | expr_sub
+    | expr_remove_from
+    | expr_multiply
+    | expr_divide
+    | expr_modulo 
+    | expr_or
+    | expr_and
+    | expr_caret
+    | expr_and_and
+    | expr_or_or
+    | expr_eq
+    | expr_ne
+    | expr_lt
+    | expr_le
+    | expr_gt
+    | expr_ge
+    | expr_ternary
+    | expr_equals
+    | expr_local_assign
+    | expr_expr_list
+    | index_slice
+    | expr_dollar
+    | expr_dollar_id
+    | expr_dollar_func
+    | expr_in
+    | expr_not_in
+    | expr_expr_list_
+    | expr_empty
+    | expr_record
+    | expr_table
+    | expr_set
+    | expr_vector
+    | expr_opt_list
+    | expr_hook
+    | expr_has_field
+    | anonymous_function
+    | expr_schedule
+    | expr_regex
+    | expr_size
+    | expr_as
+    | expr_is
+    | atom
+    | id
+
+expr_comment: COMMENT+
+expr_last_comment: COMMENT+
+expr_list_2: [expr_comment] expr
+expr_list_1: expr_list COMMA expr_list_2
+expr_list: expr_list_1 | expr_list_2
+
+enum_body_last_comment: COMMENT+
+enum_body: enum_body_list [COMMA] [enum_body_last_comment]
+
+enum_body_list_: enum_body_list COMMA enum_body_elem_with_comments
+enum_body_list: enum_body_elem_with_comments | enum_body_list_
+
+enum_body_elem_id_1: id EQUALS atom [opt_deprecated]
+enum_body_elem_id_2: id EQUALS TOK_MINUS atom
+enum_body_elem_id_3: id [opt_deprecated]
+enum_body_elem: enum_body_elem_id_1 | enum_body_elem_id_2 | enum_body_elem_id_3
+
+enum_body_elem_comments: COMMENT+
+enum_body_elem_with_comments: [enum_body_elem_comments] enum_body_elem
+
+type_simple_int: TOK_INT
+type_simple_interval.15: TOK_INTERVAL
+type_simple_count: TOK_COUNT
+type_simple_counter.15: TOK_COUNTER
+type_simple_time: TOK_TIME
+type_simple_timer.15: TOK_TIMER
+type_simple_opaque: TOK_OPAQUE TOK_OF id
+
+type_simple: TOK_ADDR
+    | TOK_ANY
+    | TOK_BOOL
+    | type_simple_count
+    | type_simple_counter
+    | TOK_DOUBLE
+    | TOK_FILE
+    | type_simple_int
+    | type_simple_interval
+    | TOK_LIST
+    | type_simple_opaque
+    | TOK_PATTERN
+    | TOK_PORT
+    | TOK_STRING
+    | TOK_SUBNET
+    | type_simple_time
+    | type_simple_timer
+
+type_table.15: TOK_TABLE LBRACKET type_list RBRACKET TOK_OF type
+type_set.15: TOK_SET LBRACKET type_list RBRACKET
+type_record.15: TOK_RECORD LBRACE type_decl_list RBRACE
+type_union.15: TOK_UNION LBRACE type_list RBRACE
+type_enum.15: TOK_ENUM LBRACE enum_body RBRACE
+type_list_type.15: TOK_LIST TOK_OF type
+type_vector.15: TOK_VECTOR TOK_OF type
+type_func.15: TOK_FUNCTION func_params
+type_event.15: TOK_EVENT LPAREN [formal_args] RPAREN
+type_hook.15: TOK_HOOK LPAREN [formal_args] RPAREN
+type_file.15: TOK_FILE TOK_OF type
+
+type_id.20: resolve_id
+
+type_complex: type_table
+    | type_set
+    | type_record
+    | type_union
+    | type_enum
+    | type_list_type
+    | type_vector
+    | type_func
+    | type_event
+    | type_hook
+    | type_file
+
+type: type_simple | type_complex | type_id
+
+type_list: (type COMMA)* type
+
+type_decl_comments: COMMENT+
+type_decl_last_comment: COMMENT+
+type_decl_list: (type_decl_with_comments)* [type_decl_last_comment]
+type_decl_with_comments: [type_decl_comments] type_decl
+type_decl: id COLON type [opt_attr] SEMICOLON
+
+formal_args: formal_args_decl_list [SEMICOLON]
+
+// formal_args_decl_list_semicolon: (formal_args_decl SEMICOLON)* formal_args_decl  
+// formal_args_decl_list_comma: (formal_args_decl COMMA)* formal_args_decl
+formal_args_decl_list_semicolon: formal_args_decl_list SEMICOLON formal_args_decl  
+formal_args_decl_list_comma: formal_args_decl_list COMMA formal_args_decl
+formal_args_decl_list: formal_args_decl_list_semicolon | formal_args_decl_list_comma | formal_args_decl
+
+formal_args_decl: id COLON type [opt_attr]
+
+module_decl: TOK_MODULE id SEMICOLON
+export_decl: TOK_EXPORT LBRACE decl_list RBRACE
+global_decl: TOK_GLOBAL def_global_id [opt_type] [init_class] [opt_init] [opt_attr] SEMICOLON
+option_decl: TOK_OPTION def_global_id [opt_type] [init_class] [opt_init] [opt_attr] SEMICOLON
+const_decl: TOK_CONST def_global_id [opt_type] [init_class] [opt_init] [opt_attr] SEMICOLON
+global_type_decl: TOK_TYPE global_id COLON type [opt_attr] SEMICOLON
+
+redef_global_decl: TOK_REDEF global_id [opt_type] [init_class] [opt_init] [opt_attr] SEMICOLON
+redef_enum_decl: TOK_REDEF TOK_ENUM global_id TOK_ADD_TO LBRACE enum_body RBRACE SEMICOLON
+redef_record_decl: TOK_REDEF TOK_RECORD global_id TOK_ADD_TO LBRACE type_decl_list RBRACE [opt_attr] SEMICOLON
+redef_decl: redef_global_decl | redef_enum_decl | redef_record_decl
+
+func_decl: func_hdr [conditional_list] func_body
+
+decl: module_decl
+    | export_decl
+    | global_decl
+    | option_decl
+    | const_decl
+    | redef_decl
+    | global_type_decl
+    | func_decl
+    | conditional
+    | directives
+
+directives: TOK_ATDEPRECATED /.+/
+    | TOK_ATLOAD FILE
+    | TOK_ATUNLOAD FILE
+    | TOK_ATLOADSIGS FILE
+    | TOK_ATLOADPLUGIN id
+    | TOK_ATPREFIXES /\+?=/ PREFIX
+
+conditional_list: (conditional)+
+conditional: TOK_ATIF expr_
+    | TOK_ATIFDEF LPAREN id RPAREN
+    | TOK_ATIFNDEF LPAREN id RPAREN
+    | TOK_ATENDIF
+    | TOK_ATELSE
+
+func_hdr_global: TOK_FUNCTION def_global_id func_params [opt_attr] 
+func_hdr_event: TOK_EVENT event_id func_params [opt_attr] 
+func_hdr_hook: TOK_HOOK def_global_id func_params [opt_attr]
+func_hdr_redef: TOK_REDEF TOK_EVENT event_id func_params [opt_attr] 
+func_hdr: func_hdr_global
+    | func_hdr_event
+    | func_hdr_hook
+    | func_hdr_redef
+
+func_body: LBRACE stmt_list RBRACE
+anonymous_function: TOK_FUNCTION begin_func func_body
+begin_func: func_params
+
+func_params_without_type: LPAREN [formal_args] RPAREN
+func_params_with_type: LPAREN [formal_args] RPAREN COLON type
+func_params: func_params_without_type | func_params_with_type
+
+opt_type: COLON type
+init_class: EQUALS | TOK_ADD_TO | TOK_REMOVE_FROM
+opt_init: init
+
+init_opt_list: LBRACE [expr_list] [expr_last_comment] RBRACE
+init_expr_list_: expr_list COMMA [expr_last_comment]
+init_expr_list: LBRACE init_expr_list_ RBRACE
+init: init_opt_list | init_expr_list | expr
+
+index_slice: expr LBRACKET [expr] COLON [expr] RBRACKET
+opt_attr.12: attr+
+
+opt_deprecated_1: TOK_ATTR_DEPRECATED
+opt_deprecated_2: TOK_ATTR_DEPRECATED EQUALS atom
+opt_deprecated: opt_deprecated_1 | opt_deprecated_2
+
+// attr_expr: expr_2
+
+attr.20: TOK_ATTR_DEFAULT EQUALS expr
+    | TOK_ATTR_OPTIONAL
+    | TOK_ATTR_REDEF
+    | TOK_ATTR_ADD_FUNC EQUALS expr
+    | TOK_ATTR_DEL_FUNC EQUALS expr
+    | TOK_ATTR_EXPIRE_FUNC EQUALS expr
+    | TOK_ATTR_EXPIRE_CREATE EQUALS expr
+    | TOK_ATTR_EXPIRE_READ EQUALS expr
+    | TOK_ATTR_EXPIRE_WRITE EQUALS expr
+    | TOK_ATTR_RAW_OUTPUT
+    | TOK_ATTR_PRIORITY EQUALS expr
+    | TOK_ATTR_TYPE_COLUMN EQUALS expr
+    | TOK_ATTR_LOG
+    | TOK_ATTR_ERROR_HANDLER
+    | opt_deprecated_1
+    | opt_deprecated_2
+
+stmt_stmt_list: LBRACE [opt_no_test_block] stmt_list RBRACE
+
+stmt_print: TOK_PRINT expr_list SEMICOLON [opt_no_test]
+stmt_event: TOK_EVENT event SEMICOLON [opt_no_test]
+
+stmt_if_else_comments: COMMENT+
+stmt_if_no_else: TOK_IF expr_ stmt_with_comments [stmt_if_else_comments]
+// stmt_else_no_brace: [stmt_if_else_comments] stmt
+// stmt_else_brace: stmt_stmt_list
+stmt_else: TOK_ELSE stmt_with_comments [stmt_if_else_comments] // (stmt_else_no_brace | stmt_else_brace)
+stmt_else_if.20: TOK_ELSE_IF expr_ stmt_with_comments [stmt_if_else_comments]
+stmt_if: stmt_if_no_else (stmt_else_if)* [stmt_else]
+
+stmt_case: LBRACE case_list RBRACE
+stmt_switch: TOK_SWITCH expr stmt_case
+stmt_while: TOK_WHILE expr_ stmt_with_comments
+stmt_for: for_head stmt_with_comments
+stmt_next: TOK_NEXT SEMICOLON [opt_no_test]
+stmt_break: TOK_BREAK SEMICOLON [opt_no_test]
+stmt_fallthrough: TOK_FALLTHROUGH SEMICOLON [opt_no_test]
+
+stmt_return_no_expr: TOK_RETURN SEMICOLON [opt_no_test]
+stmt_return_with_expr: TOK_RETURN expr SEMICOLON [opt_no_test]
+stmt_return: stmt_return_no_expr | stmt_return_with_expr
+
+stmt_add: TOK_ADD expr SEMICOLON [opt_no_test]
+stmt_delete: TOK_DELETE expr SEMICOLON [opt_no_test]
+stmt_local: TOK_LOCAL local_id [opt_type] [init_class] [opt_init] [opt_attr] SEMICOLON [opt_no_test]
+stmt_const: TOK_CONST local_id [opt_type] [init_class] [opt_init] [opt_attr] SEMICOLON [opt_no_test]
+
+stmt_when_no_expr: TOK_WHEN expr_ stmt_with_comments
+stmt_when_expr: stmt_when_no_expr [stmt_comments] TOK_TIMEOUT expr stmt_stmt_list
+stmt_when: stmt_when_no_expr | stmt_when_expr
+
+stmt_return_when_expr: TOK_RETURN TOK_WHEN expr_ stmt_with_comments
+stmt_return_when_stmt: stmt_return_when_expr [stmt_comments] TOK_TIMEOUT expr stmt_stmt_list
+stmt_return_when: stmt_return_when_expr | stmt_return_when_stmt
+
+// Increased the priority so that this is triggered
+stmt_slice.5: index_slice EQUALS expr SEMICOLON [opt_no_test]
+// stmt_expr: expr_without_comment SEMICOLON [opt_no_test]
+stmt_expr: expr SEMICOLON [opt_no_test]
+
+stmt_comments.20: COMMENT+
+stmt_with_comments: [stmt_comments] stmt
+stmt:stmt_stmt_list
+    | stmt_print 
+    | stmt_event
+    | stmt_if
+    | stmt_switch
+    | stmt_for
+    | stmt_while
+    | stmt_next
+    | stmt_break
+    | stmt_fallthrough
+    | stmt_return
+    | stmt_add
+    | stmt_delete
+    | stmt_local
+    | stmt_const
+    | stmt_when
+    | stmt_return_when
+    | stmt_slice
+    | SEMICOLON
+    | conditional
+    | stmt_expr
+
+stmt_last_comment: COMMENT+
+stmt_list: (stmt_with_comments)* [stmt_last_comment]
+event: id expr_opt_list_
+
+case_comments: COMMENT+
+case_last_comment: COMMENT+
+case_with_comments: [case_comments] case
+case_list: (case_with_comments)* [case_last_comment]
+
+case_list_expr: TOK_CASE expr_list COLON stmt_list
+case_list_type: TOK_CASE case_type_list COLON stmt_list
+case_default: TOK_DEFAULT COLON stmt_list
+case: case_list_expr | case_list_type | case_default
+
+case_type_list_: case_type_list COMMA case_type
+case_type_list: case_type_list_ | case_type
+
+case_type_: TOK_TYPE type 
+case_type_id: TOK_TYPE type TOK_AS id
+case_type: case_type_ | case_type_id
+
+for_head_id: TOK_FOR LPAREN id TOK_IN expr RPAREN
+for_head_list: TOK_FOR LPAREN LBRACKET local_id_list RBRACKET TOK_IN expr RPAREN
+for_head_in: TOK_FOR LPAREN id COMMA id TOK_IN expr RPAREN
+for_head_list_: TOK_FOR LPAREN LBRACKET local_id_list RBRACKET COMMA id TOK_IN expr RPAREN
+for_head: for_head_id | for_head_list | for_head_in | for_head_list_
+
+local_id_list_: local_id_list COMMA local_id 
+local_id_list: local_id_list_ | local_id
+local_id: id
+global_id: global_or_event_id
+def_global_id: global_id
+event_id: global_or_event_id
+global_or_event_id: id
+resolve_id: id
+opt_no_test: TOK_NO_TEST
+opt_no_test_block: TOK_NO_TEST
+
+id: CNAME (TOK_NAMESPACE CNAME)*
+
+signed_number.10: SIGNED_NUMBER
+hostname.5: HOSTNAME
+hexnumber.15: HEXNUMBER
+escaped_strings: ESCAPED_STRING
+mime: MIME
+ipaddr.25: IPADDR
+atdir: TOK_ATDIR
+atfilename: TOK_ATFILENAME
+true: TRUE
+false: FALSE
+interval.25: INTERVAL
+port.25: PORT
+subnet.25: SUBNET
+
+atom: signed_number
+    | hostname
+    | hexnumber 
+    | escaped_strings
+    | mime
+    | ipaddr
+    | interval 
+    | port 
+    | subnet
+    | atdir
+    | atfilename
+    | true
+    | false
+
+// operator tokens
+TOK_TILDE: "~"
+TOK_DOLLAR: "$"
+TOK_OR: "|"
+TOK_NOT: "!"
+TOK_MINUS: "-"
+TOK_PLUS: "+"
+TOK_MULTIPLY: "*"
+TOK_DIVIDE: "/"
+TOK_MODULO: "%"
+TOK_AMPERSAND: "&"
+TOK_CARET: "^"
+TOK_LT: "<"
+TOK_GT: ">"
+TOK_QUESTION: "?"
+
+// define tokens
+TOK_NAMESPACE: "::"
+TOK_PATTERN_TEXT: REGEXP
+TOK_PATTERN_END: TOK_DIVIDE ["i"]
+TOK_NO_TEST: " "
+TOK_DECR: "--"
+TOK_INCR: "++"
+TOK_ADD_TO: "+="
+TOK_REMOVE_FROM: "-="
+TOK_EQ: "=="
+TOK_NE: "!="
+TOK_GE: ">="
+TOK_LE: "<="
+TOK_AND_AND: "&&"
+TOK_OR_OR: "||"
+TOK_ADD: "add"
+TOK_ADDR: "addr"
+TOK_ANY: "any"
+TOK_AS: "as"
+TOK_BOOL: "bool"
+TOK_BREAK: "break"
+TOK_CASE: "case"
+TOK_OPTION: "option"
+TOK_CONST: "const"
+TOK_COPY: "copy"
+TOK_COUNT: "count"
+TOK_COUNTER: "counter"
+TOK_DEFAULT: "default"
+TOK_DELETE: "delete"
+TOK_DOUBLE: "double"
+TOK_ELSE: "else"
+TOK_ELSE_IF: "else if"
+TOK_ENUM: "enum"
+TOK_EVENT: "event"
+TOK_EXPORT: "export"
+TOK_FALLTHROUGH: "fallthrough"
+TOK_FILE: "file"
+TOK_FOR: "for"
+TOK_WHILE: "while"
+TOK_FUNCTION: "function"
+TOK_GLOBAL: "global"
+TOK_HAS_FIELD: "?$"
+TOK_HOOK: "hook"
+TOK_IF: "if"
+TOK_IN: "in"
+TOK_NOT_IN: "!" OWS TOK_IN
+TOK_INT: "int"
+TOK_INTERVAL: "interval"
+TOK_IS: "is"
+TOK_LIST: "list"
+TOK_LOCAL: "local"
+TOK_MODULE: "module"
+TOK_NEXT: "next"
+TOK_OF: "of"
+TOK_OPAQUE: "opaque"
+TOK_PATTERN: "pattern"
+TOK_PORT: "port"
+TOK_PRINT: "print"
+TOK_RECORD: "record"
+TOK_REDEF: "redef"
+TOK_RETURN: "return"
+TOK_SCHEDULE: "schedule"
+TOK_SET: "set"
+TOK_STRING: "string"
+TOK_SUBNET: "subnet"
+TOK_SWITCH: "switch"
+TOK_TABLE: "table"
+TOK_TIME: "time"
+TOK_TIMEOUT: "timeout"
+TOK_TIMER: "timer"
+TOK_TYPE: "type"
+TOK_UNION: "union"
+TOK_VECTOR: "vector"
+TOK_WHEN: "when"
+TOK_ATTR_ADD_FUNC: "&add_func"
+TOK_ATTR_EXPIRE_CREATE: "&create_expire"
+TOK_ATTR_DEFAULT: "&default"
+TOK_ATTR_DEL_FUNC: "&delete_func"
+TOK_ATTR_DEPRECATED: "&deprecated"
+TOK_ATTR_RAW_OUTPUT: "&raw_output"
+TOK_ATTR_ERROR_HANDLER: "&error_handler"
+TOK_ATTR_EXPIRE_FUNC: "&expire_func"
+TOK_ATTR_LOG: "&log"
+TOK_ATTR_OPTIONAL: "&optional"
+TOK_ATTR_PRIORITY: "&priority"
+TOK_ATTR_TYPE_COLUMN: "&type_column"
+TOK_ATTR_EXPIRE_READ: "&read_expire"
+TOK_ATTR_REDEF: "&redef"
+TOK_ATTR_EXPIRE_WRITE: "&write_expire"
+
+// tokens for directives
+TOK_ATLOAD: "@load"
+TOK_ATLOADSIGS: TOK_ATLOAD"-sigs"
+TOK_ATLOADPLUGIN: TOK_ATLOAD"-plugin"
+TOK_ATUNLOAD: "@unload"
+TOK_ATPREFIXES: "@prefixes"
+TOK_ATDEBUG: "@DEBUG"
+TOK_ATIF: "@if"
+TOK_ATIFDEF: "@ifdef"
+TOK_ATIFNDEF: "@ifndef"
+TOK_ATELSE: "@else"
+TOK_ATENDIF: "@endif"
+TOK_ATDIR: "@DIR"
+TOK_ATFILENAME: "@FILENAME"
+TOK_ATDEPRECATED: "@deprecated"
+
+// Numbers
+HEXDIGIT: "a".."f" | "A".."F" | "0".."9"
+HEXNUMBER: "0x"(HEXDIGIT)+
+
+INT: /[0-9]+/
+SIGN: TOK_PLUS | TOK_MINUS
+TOK_DECIMAL: "."
+DECIMAL: INT TOK_DECIMAL? INT? | INT? TOK_DECIMAL? INT
+TOK_EXPONENT: "e" | "E"
+_EXP: TOK_EXPONENT SIGN? INT
+SIGNED_NUMBER: INT _EXP | DECIMAL _EXP?
+
+// Strings
+_STRING_INNER: /.*?/
+_STRING_ESC_INNER: _STRING_INNER /(?<!\\)(\\\\)*?/ 
+ESCAPED_STRING: "\"" _STRING_ESC_INNER "\""
+
+// Names (Variables)
+LCASE_LETTER: "a".."z"
+UCASE_LETTER: "A".."Z"
+LETTER: UCASE_LETTER | LCASE_LETTER
+CNAME: ("_"|LETTER)("_"|LETTER|INT)*
+
+//IP Address
+IP4: /([0-9]+\.){3}[0-9]+/
+
+IPV6_1: /\[([0-9a-fA-F]+:){7}[0-9a-fA-F]+\]/
+IPV6_2: /\[0x[0-9a-fA-F]+([0-9a-fA-F]+|:)*::([0-9a-fA-F]+|:)*\]/
+IPV6_3: /\[([0-9a-fA-F]+|:)*::([0-9a-fA-F]+|:)*\]/
+IPV6_4: /\[([0-9a-fA-F]+:){6}([0-9]+\.){3}[0-9]+\]/
+IPV6_5: /\[([0-9a-fA-F]+|:)*::([0-9a-fA-F]+|:)*([0-9]+\.){3}[0-9]+\]/
+
+IP6: IPV6_1 | IPV6_2 | IPV6_3 | IPV6_4 | IPV6_5
+
+IPADDR: IP4 | IP6
+
+SUBNET: IPADDR TOK_DIVIDE INT
+
+// Protocol
+TCP: "tcp"
+UDP: "udp"
+ICMP: "icmp"
+UNKNOWN: "unknown"
+PROTOCOL: TCP | UDP | ICMP | UNKNOWN
+PORT: INT TOK_DIVIDE PROTOCOL
+
+// Hostname
+NAME: /[A-Za-z0-9][A-Za-z0-9\-]*/
+HOSTNAME: NAME ("." NAME)+
+
+// MIME type
+MIME: /\/[a-zA-Z0-9]+\\\/[a-zA-Z0-9-.+]+\//
+
+// FILE
+FILE: /[^ \t\n]+/
+
+// PREFIX
+PREFIX: /[^ \t\n]+/
+
+// Regular expression
+ITEM: /[^\/\\\n]/
+ESCSEQ: /(\\([^\n]|[0-7]+|x[[:xdigit:]]+))/
+REGEXP: (ITEM | ESCSEQ)+
+
+// Time
+USEC: "usec"
+MSEC: "msec"
+SEC: "sec"
+MIN: "min"
+HR: "hr"
+DAY: "day"
+TIME: USEC | MSEC | SEC | MIN | HR | DAY
+INTERVAL_: TIME ["s"]
+INTERVAL: SIGNED_NUMBER [" "] INTERVAL_
+
+// Booleans
+TRUE: "T"
+FALSE: "F"
+
+// Whitespace
+OWS: /[ \t]*/
+// WS_INLINE: (" "|/\t/)+
+WS: /[ \t\f\r\n]/+
+CR : /\r/
+LF : /\n/
+// NEWLINE: (WS* CR? LF)+
+
+COMMENT: /#[^\n]*/
+
+%ignore WS+  // WS
+%ignore /WS* CR? LF/   // LINE_CONT
+// %ignore COMMENT
+
+// Syntax tokens
+LBRACE: "{"
+RBRACE: "}"
+LBRACKET: "["
+RBRACKET: "]"
+LPAREN: "("
+RPAREN: ")"
+COLON: ":"
+SEMICOLON: ";"
+COMMA: ","
+EQUALS: "="
+
+// Needed when parsing btest files
+BTEST_TEST: /(#[ ])*@TEST-START-NEXT[^\n]*/
+BTEST_FILE: /(#[ ])*@TEST-START-FILE(.|[\r\n])*(#[ ])*@TEST-END-FILE/
+BTEST_EXEC: /(#[ ])*@TEST-EXEC[^\n]*/
+BTEST: BTEST_FILE | BTEST_TEST | BTEST_EXEC
+%ignore BTEST
